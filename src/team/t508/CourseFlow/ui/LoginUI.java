@@ -23,22 +23,29 @@ public class LoginUI extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // 创建面板
-        JPanel panel = new JPanel(new GridLayout(3, 2));
+        // 创建主面板，使用BorderLayout
+        JPanel mainPanel = new JPanel(new BorderLayout());
 
-        // 添加组件
-        panel.add(new JLabel("姓名:"));
+        // 创建表单面板，使用GridLayout
+        JPanel formPanel = new JPanel(new GridLayout(2, 2, 5, 5));
+        formPanel.add(new JLabel("姓名:"));
         nameField = new JTextField();
-        panel.add(nameField);
-
-        panel.add(new JLabel("密码:"));
+        formPanel.add(nameField);
+        formPanel.add(new JLabel("密码:"));
         passwordField = new JPasswordField();
-        panel.add(passwordField);
+        formPanel.add(passwordField);
 
+        // 创建按钮面板，使用FlowLayout
+        JPanel buttonPanel = new JPanel();
         JButton loginButton = new JButton("登录");
-        panel.add(loginButton);
+        buttonPanel.add(loginButton);
 
-        add(panel);
+        // 将表单面板添加到主面板的中部
+        mainPanel.add(formPanel, BorderLayout.CENTER);
+        // 将按钮面板添加到主面板的底部
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        add(mainPanel);
 
         // 登录按钮事件
         loginButton.addActionListener(_ -> {
