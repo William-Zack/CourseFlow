@@ -1,5 +1,8 @@
 package team.t508.CourseFlow.ui;
+
 import team.t508.CourseFlow.utils.ChatRecord;
+import team.t508.CourseFlow.utils.Utility;
+
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
@@ -69,7 +72,8 @@ public class MainUI extends JFrame {
         sendButton.addActionListener(e -> {
             String message = messageField.getText();
             if (!message.isEmpty()) {
-                sendMessage(userName + ": " + message);
+                String currentTime = Utility.getCurrentDateTime();
+                sendMessage(currentTime + " " + userName + ": " + message);
                 messageField.setText("");
                 // 添加发送消息到服务器的逻辑，待写
             }
