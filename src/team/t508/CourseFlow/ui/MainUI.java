@@ -5,6 +5,10 @@ import team.t508.CourseFlow.utils.Utility;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
+import java.io.DataOutputStream;
+import java.io.DataInputStream;
+import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,10 +23,18 @@ public class MainUI extends JFrame {
     private final ChatRecord chatRecord;
     private final String userName;
 
+    // 定义网络通信相关的组件
+    private Socket socket;
+    private DataInputStream dis;
+    private DataOutputStream dos;
+
     public MainUI(String userName) {
         // 主界面初始化
         this.userName = userName;
         this.chatRecord = ChatRecord.loadChatRecord(userName);
+
+        // 连接服务器
+        connectToServer();
 
         // 主界面基础设置
         setTitle("CourseFlow");
@@ -73,14 +85,29 @@ public class MainUI extends JFrame {
             String message = messageField.getText();
             if (!message.isEmpty()) {
                 String currentTime = Utility.getCurrentDateTime();
-                sendMessage(currentTime + " " + userName + ": " + message);
+                sendMessageToServer(currentTime + " " + userName + ": " + message, currentCourse);
                 messageField.setText("");
-                // 添加发送消息到服务器的逻辑，待写
             }
         });
 
         // 默认选择第一个课程
         switchCourse("高等数学");
+
+        // 启动线程接收消息
+        new Thread(this::receiveMessages).start();
+    }
+
+    private void connectToServer() {
+        try {
+            // 连接服务器
+            socket = new Socket("localhost", 8989);
+            dis = new DataInputStream(socket.getInputStream());
+            dos = new DataOutputStream(socket.getOutputStream());
+            // 发送用户名到服务器
+            dos.writeUTF(userName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void addCourse(String courseName, JPanel coursePanel) {
@@ -94,16 +121,70 @@ public class MainUI extends JFrame {
     }
 
     private void switchCourse(String courseName) {
+        if (currentCourse != null) {
+            // 通知离开当前课程
+            sendSystemMessageToServer(userName + " 离开了 " + currentCourse + " 课堂", currentCourse);
+        }
         currentCourse = courseName;
         chatArea.setText(courseChatAreas.get(courseName).getText());
+        // 通知进入新课程
+        sendSystemMessageToServer(userName + " 进入了 " + currentCourse + " 课堂", currentCourse);
     }
 
-    private void sendMessage(String message) {
-        JTextArea currentChatArea = courseChatAreas.get(currentCourse);
+    private void sendMessageToServer(String message, String course) {
+        try {
+            // 先发送课程标签，确保能存储到对应课程中，避免跨聊天收到消息，随后发送具体消息
+            dos.writeUTF(course);
+            dos.writeUTF(message);
+            dos.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        sendMessage(message, course);
+    }
+
+    private void sendSystemMessageToServer(String message, String course) {
+        // 发送系统消息
+        String currentTime = Utility.getCurrentDateTime();
+        String systemMessage = currentTime + " 系统消息：" + message ;
+        try {
+            // 先发送课程标签，确保能存储到对应课程中，避免跨聊天收到消息，随后发送具体消息
+            dos.writeUTF(course);
+            dos.writeUTF(systemMessage);
+            dos.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        sendMessage(systemMessage, course);
+    }
+
+    private void sendMessage(String message, String course) {
+        JTextArea currentChatArea = courseChatAreas.get(course);
         currentChatArea.append(message + "\n");
         chatArea.setText(currentChatArea.getText());
-        chatRecord.setChatRecord(currentCourse, currentChatArea.getText());
+        chatRecord.setChatRecord(course, currentChatArea.getText());
         ChatRecord.saveChatRecord(userName, chatRecord);
-        // 添加发送消息到服务器的逻辑，待写
+    }
+
+    private void receiveMessages() {
+        try {
+            while (true) {
+                // 接收发送的课程名和消息
+                String course = dis.readUTF();
+                String message = dis.readUTF();
+                // 如果是当前课程的消息则显示在聊天区域，否则保存到对应课程的聊天记录
+                if (course.equals(currentCourse)) {
+                    sendMessage(message, course);
+                } else {
+                    // 保存到其他课程的聊天记录
+                    JTextArea otherCourseChatArea = courseChatAreas.get(course);
+                    otherCourseChatArea.append(message + "\n");
+                    chatRecord.setChatRecord(course, otherCourseChatArea.getText());
+                    ChatRecord.saveChatRecord(userName, chatRecord);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
