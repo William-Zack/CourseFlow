@@ -1,6 +1,7 @@
 package team.t508.CourseFlow.server;
 
 import team.t508.CourseFlow.utils.ChatUtils;
+import team.t508.CourseFlow.utils.Utility;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -38,6 +39,8 @@ public class ServerMultiUser {
         private boolean isRunning;
         // name用于存储客户端的用户名，用于区分不同的客户端，可在后续数据库存储中使用
         private String name;
+        // currentCourse用于存储当前课程，用于区分不同课程的聊天
+        private String currentCourse;
 
         public Channel(Socket client) {
             // 初始化Channel对象，接收客户端的Socket对象
@@ -88,6 +91,10 @@ public class ServerMultiUser {
         }
 
         private void release() {
+            // 通知其他客户端用户离开
+            if (currentCourse != null) {
+                sendOthers(currentCourse, Utility.getCurrentDateTime() + " 系统消息：" + name + " 离开了 " + currentCourse + " 课堂", true);
+            }
             // 关闭连接，释放资源
             this.isRunning = false;
             ChatUtils.close(dis, dos, client);
@@ -98,10 +105,10 @@ public class ServerMultiUser {
         public void run() {
             // 覆写run()方法，用于接收客户端发送的数据
             while (isRunning) {
-                String course = receive();
+                currentCourse = receive();
                 String msg = receive();
                 if (!msg.isEmpty()) {
-                    sendOthers(course, msg, false);
+                    sendOthers(currentCourse, msg, false);
                 }
             }
         }
