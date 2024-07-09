@@ -53,8 +53,8 @@ public class LoginUI extends JFrame {
             String password = new String(passwordField.getPassword());
             if (authenticateUser(name, password)) {
                 JOptionPane.showMessageDialog(null, "登录成功!");
-                // 进入主界面
                 new MainUI(name).setVisible(true);
+                this.dispose();
             } else {
                 JOptionPane.showMessageDialog(null, "姓名或密码错误!", "登录失败", JOptionPane.ERROR_MESSAGE);
             }

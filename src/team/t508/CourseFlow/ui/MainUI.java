@@ -1,5 +1,5 @@
 package team.t508.CourseFlow.ui;
-
+import team.t508.CourseFlow.utils.ChatRecord;
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
@@ -9,11 +9,18 @@ import java.util.Map;
  * @author Henry
  */
 public class MainUI extends JFrame {
+    // 定义主界面的组件
     private final JTextArea chatArea;
     private final Map<String, JTextArea> courseChatAreas;
     private String currentCourse;
+    private final ChatRecord chatRecord;
+    private final String userName;
 
     public MainUI(String userName) {
+        // 主界面初始化
+        this.userName = userName;
+        this.chatRecord = ChatRecord.loadChatRecord(userName);
+
         // 主界面基础设置
         setTitle("CourseFlow");
         setSize(800, 600);
@@ -77,7 +84,9 @@ public class MainUI extends JFrame {
         courseButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, courseButton.getMinimumSize().height));
         courseButton.addActionListener(e -> switchCourse(courseName));
         coursePanel.add(courseButton);
-        courseChatAreas.put(courseName, new JTextArea());
+        JTextArea courseChatArea = new JTextArea();
+        courseChatArea.setText(chatRecord.getChatRecord(courseName));
+        courseChatAreas.put(courseName, courseChatArea);
     }
 
     private void switchCourse(String courseName) {
@@ -89,6 +98,8 @@ public class MainUI extends JFrame {
         JTextArea currentChatArea = courseChatAreas.get(currentCourse);
         currentChatArea.append(message + "\n");
         chatArea.setText(currentChatArea.getText());
+        chatRecord.setChatRecord(currentCourse, currentChatArea.getText());
+        ChatRecord.saveChatRecord(userName, chatRecord);
         // 添加发送消息到服务器的逻辑，待写
     }
 }
