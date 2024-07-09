@@ -11,6 +11,7 @@ import java.sql.Statement;
 public class DatabaseUtil {
     // 定义字符串常量作为数据库连接信息
     private static final String JDBC_URL = "jdbc:mysql://localhost/courseflow?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai";
+    private static final String INIT_URL = "jdbc:mysql://localhost";
     private static final String DB_NAME = "courseflow";
     private static final String USER = "root";
     private static final String PASSWORD = "123456";
@@ -29,7 +30,7 @@ public class DatabaseUtil {
     }
 
     public static void initializeDatabase() {
-        try (Connection conn = DriverManager.getConnection(JDBC_URL, USER, PASSWORD);
+        try (Connection conn = DriverManager.getConnection(INIT_URL, USER, PASSWORD);
              Statement stmt = conn.createStatement()) {
             // 检测并创建数据库
             stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS " + DB_NAME);

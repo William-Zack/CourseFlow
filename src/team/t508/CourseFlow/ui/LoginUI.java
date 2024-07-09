@@ -48,12 +48,13 @@ public class LoginUI extends JFrame {
         add(mainPanel);
 
         // 登录按钮事件
-        loginButton.addActionListener(_ -> {
+        loginButton.addActionListener(e -> {
             String name = nameField.getText();
             String password = new String(passwordField.getPassword());
             if (authenticateUser(name, password)) {
                 JOptionPane.showMessageDialog(null, "登录成功!");
-                // 进入主界面，待写
+                new MainUI(name).setVisible(true);
+                this.dispose();
             } else {
                 JOptionPane.showMessageDialog(null, "姓名或密码错误!", "登录失败", JOptionPane.ERROR_MESSAGE);
             }
