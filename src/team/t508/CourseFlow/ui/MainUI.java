@@ -17,6 +17,7 @@ import java.util.Map;
  * @author Henry
  * @author Gavenz
  */
+
 public class MainUI extends JFrame {
     // 定义主界面的组件
     private final JTextArea chatArea;
