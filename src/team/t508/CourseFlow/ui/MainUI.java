@@ -15,6 +15,7 @@ import java.util.Map;
 
 /**
  * @author Henry
+ * @author Gavenz
  */
 public class MainUI extends JFrame {
     // 定义主界面的组件
@@ -78,20 +79,20 @@ public class MainUI extends JFrame {
         JPanel inputPanel = new JPanel(new BorderLayout());
         JTextField messageField = new JTextField();
         JButton sendButton = new JButton("发送");
-
+        // 将消息输入框和发送按钮添加到输入面板
         inputPanel.add(messageField, BorderLayout.CENTER);
         inputPanel.add(sendButton, BorderLayout.EAST);
-
+        // 将聊天显示区域和输入面板添加到聊天面板
         chatPanel.add(chatScrollPane, BorderLayout.CENTER);
         chatPanel.add(inputPanel, BorderLayout.SOUTH);
 
         // 添加签到和举手按钮
         JPanel buttonPanel = new JPanel();
-        if (isTeacher) {
+        if (isTeacher) {   // 如果是老师，显示签到按钮
             JButton checkInButton = new JButton("签到");
             checkInButton.addActionListener(e -> sendCheckInRequest());
             buttonPanel.add(checkInButton);
-        } else {
+        } else {    // 如果是学生，显示举手按钮
             JButton raiseHandButton = new JButton("举手");
             raiseHandButton.addActionListener(e -> sendRaiseHandRequest());
             buttonPanel.add(raiseHandButton);
@@ -104,7 +105,7 @@ public class MainUI extends JFrame {
         mainPanel.add(coursePanel, BorderLayout.WEST);
         mainPanel.add(chatPanel, BorderLayout.CENTER);
 
-        add(mainPanel);
+        add(mainPanel); // 将主面板添加到窗口
 
         // 发送按钮事件
         sendButton.addActionListener(e -> {
@@ -131,22 +132,22 @@ public class MainUI extends JFrame {
             dos = new DataOutputStream(socket.getOutputStream());
             // 发送用户名到服务器
             dos.writeUTF(userName);
-        } catch (IOException e) {
+        } catch (IOException e) { // 连接失败
             e.printStackTrace();
         }
     }
 
-    private void addCourse(String courseName, JPanel coursePanel) {
-        JButton courseButton = new JButton(courseName);
-        courseButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, courseButton.getMinimumSize().height));
-        courseButton.addActionListener(e -> switchCourse(courseName));
-        coursePanel.add(courseButton);
-        JTextArea courseChatArea = new JTextArea();
-        courseChatArea.setText(chatRecord.getChatRecord(courseName));
-        courseChatAreas.put(courseName, courseChatArea);
+    private void addCourse(String courseName, JPanel coursePanel) { // 添加课程
+        JButton courseButton = new JButton(courseName);    // 创建课程按钮
+        courseButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, courseButton.getMinimumSize().height));    // 设置按钮宽度自适应
+        courseButton.addActionListener(e -> switchCourse(courseName));      // 为课程按钮添加事件监听器
+        coursePanel.add(courseButton);      // 将课程按钮添加到课程面板
+        JTextArea courseChatArea = new JTextArea();       // 创建课程聊天区域
+        courseChatArea.setText(chatRecord.getChatRecord(courseName));    // 设置课程聊天区域的文本
+        courseChatAreas.put(courseName, courseChatArea);    // 将课程聊天区域添加到课程聊天区域Map
     }
 
-    private void switchCourse(String courseName) {
+    private void switchCourse(String courseName) {    // 切换课程
         if (currentCourse != null) {
             // 通知离开当前课程
             sendSystemMessageToServer(userName + " 离开了 " + currentCourse + " 课堂", currentCourse);
@@ -157,20 +158,19 @@ public class MainUI extends JFrame {
         sendSystemMessageToServer(userName + " 进入了 " + currentCourse + " 课堂", currentCourse);
     }
 
-    private void sendMessageToServer(String message, String course) {
+    private void sendMessageToServer(String message, String course) {     // 发送消息到服务器
         try {
             // 先发送课程标签，确保能存储到对应课程中，避免跨聊天收到消息，随后发送具体消息
             dos.writeUTF(course);
             dos.writeUTF(message);
             dos.flush();
-        } catch (IOException e) {
+        } catch (IOException e) {     // 发送失败
             e.printStackTrace();
         }
         sendMessage(message, course);
     }
 
-    private void sendSystemMessageToServer(String message, String course) {
-        // 发送系统消息
+    private void sendSystemMessageToServer(String message, String course) {    // 发送系统消息到服务器
         String currentTime = Utility.getCurrentDateTime();
         String systemMessage = currentTime + " 系统消息：" + message ;
         try {
@@ -178,34 +178,34 @@ public class MainUI extends JFrame {
             dos.writeUTF(course);
             dos.writeUTF(systemMessage);
             dos.flush();
-        } catch (IOException e) {
+        } catch (IOException e) {    // 发送失败
             e.printStackTrace();
         }
         sendMessage(systemMessage, course);
     }
 
-    private void sendMessage(String message, String course) {
-        JTextArea currentChatArea = courseChatAreas.get(course);
-        currentChatArea.append(message + "\n");
-        chatArea.setText(currentChatArea.getText());
-        chatRecord.setChatRecord(course, currentChatArea.getText());
-        ChatRecord.saveChatRecord(userName, chatRecord);
+    private void sendMessage(String message, String course) {    // 发送消息
+        JTextArea currentChatArea = courseChatAreas.get(course);    // 获取当前课程的聊天区域
+        currentChatArea.append(message + "\n");    // 在聊天区域中添加消息
+        chatArea.setText(currentChatArea.getText());    // 更新主聊天区域
+        chatRecord.setChatRecord(course, currentChatArea.getText());    // 更新聊天记录
+        ChatRecord.saveChatRecord(userName, chatRecord);    // 保存聊天记录
     }
 
-    private void receiveMessages() {
-        try {
+    private void receiveMessages() {    // 接收消息
+        try {    // 循环接收消息
             while (true) {
                 // 接收发送的课程名和消息
                 String course = dis.readUTF();
                 String message = dis.readUTF();
                 // 如果是签到请求，则处理签到请求
-                if (course.equals(currentCourse)) {
+                if (course.equals(currentCourse)) {    // 如果是当前课程的消息
                     if (message.equals("CHECK_IN_REQUEST")) {
                         handleCheckInRequest();
                     } else {
                         sendMessage(message, course);
                     }
-                } else {
+                } else {    // 如果不是当前课程的消息，则保存到其他课程的聊天记录
                     if (!message.equals("CHECK_IN_REQUEST")){
                         // 保存到其他课程的聊天记录，if判断避免保存签到请求
                         JTextArea otherCourseChatArea = courseChatAreas.get(course);
@@ -215,13 +215,13 @@ public class MainUI extends JFrame {
                     }
                 }
             }
-        } catch (IOException e) {
+        } catch (IOException e) {    // 接收失败
             e.printStackTrace();
         }
     }
 
 
-    private void sendCheckInRequest() {
+    private void sendCheckInRequest() {    // 发送签到请求
         try {
             dos.writeUTF(currentCourse); // 发送课程标签
             dos.writeUTF("CHECK_IN_REQUEST"); // 发送签到请求
@@ -230,7 +230,7 @@ public class MainUI extends JFrame {
         }
     }
 
-    private void sendRaiseHandRequest() {
+    private void sendRaiseHandRequest() {    // 发送举手请求
         String raiseHandMessage = Utility.getCurrentDateTime() + " 系统消息：" + userName + " 举手了";
         try {
             // 先发送课程标签，随后发送具体消息
@@ -243,7 +243,7 @@ public class MainUI extends JFrame {
         sendMessage(raiseHandMessage, currentCourse);
     }
 
-    private void handleCheckInRequest() {
+    private void handleCheckInRequest() {    // 处理签到请求
         int result = JOptionPane.showConfirmDialog(this, "老师发起了签到请求，是否签到？", "签到请求", JOptionPane.YES_NO_OPTION);
         if (result == JOptionPane.YES_OPTION) {
             try {

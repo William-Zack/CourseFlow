@@ -10,7 +10,9 @@ import team.t508.CourseFlow.utils.DatabaseUtil;
 
 /**
  * @author William-Zack
+ * @author Gavenz
  */
+
 public class LoginUI extends JFrame {
     // 定义登录界面的组件
     private final JTextField nameField;
@@ -66,13 +68,13 @@ public class LoginUI extends JFrame {
         // 查询数据库，验证用户
         String queryStudent = "SELECT * FROM students WHERE name = ? AND password = ?";
         String queryTeacher = "SELECT * FROM teachers WHERE name = ? AND password = ?";
-        try (Connection conn = DatabaseUtil.getConnection();
+        try (Connection conn = DatabaseUtil.getConnection();    // 获取数据库连接
              PreparedStatement stmtStudent = conn.prepareStatement(queryStudent);
              PreparedStatement stmtTeacher = conn.prepareStatement(queryTeacher)) {
             stmtStudent.setString(1, name);
             stmtStudent.setString(2, password);
             ResultSet rsStudent = stmtStudent.executeQuery();
-            if (rsStudent.next()) {
+            if (rsStudent.next()) {    // 学生登录
                 isTeacher = false;
                 return true;
             }
@@ -80,7 +82,7 @@ public class LoginUI extends JFrame {
             stmtTeacher.setString(1, name);
             stmtTeacher.setString(2, password);
             ResultSet rsTeacher = stmtTeacher.executeQuery();
-            if (rsTeacher.next()) {
+            if (rsTeacher.next()) {    // 教师登录
                 isTeacher = true;
                 return true;
             }
