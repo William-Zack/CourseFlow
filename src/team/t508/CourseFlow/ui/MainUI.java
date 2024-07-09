@@ -2,10 +2,17 @@ package team.t508.CourseFlow.ui;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
- * @author henry
+ * @author Henry
  */
 public class MainUI extends JFrame {
+    private final JTextArea chatArea;
+    private final Map<String, JTextArea> courseChatAreas;
+    private String currentCourse;
+
     public MainUI(String userName) {
         // 主界面基础设置
         setTitle("CourseFlow");
@@ -19,16 +26,18 @@ public class MainUI extends JFrame {
         // 左侧课程列表面板
         JPanel coursePanel = new JPanel();
         coursePanel.setLayout(new BoxLayout(coursePanel, BoxLayout.Y_AXIS));
+        courseChatAreas = new HashMap<>();
+
         // 添加课程列表项
-        coursePanel.add(new JLabel("高等数学"));
-        coursePanel.add(new JLabel("计算机组成原理"));
-        coursePanel.add(new JLabel("毛泽东思想概论"));
+        addCourse("高等数学", coursePanel);
+        addCourse("计算机组成原理", coursePanel);
+        addCourse("毛泽东思想概论", coursePanel);
 
         // 右侧聊天面板
         JPanel chatPanel = new JPanel(new BorderLayout());
 
         // 上部聊天显示区域
-        JTextArea chatArea = new JTextArea();
+        chatArea = new JTextArea();
         chatArea.setEditable(false);
         JScrollPane chatScrollPane = new JScrollPane(chatArea);
 
@@ -53,10 +62,33 @@ public class MainUI extends JFrame {
         sendButton.addActionListener(e -> {
             String message = messageField.getText();
             if (!message.isEmpty()) {
-                chatArea.append(userName + ": " + message + "\n");
+                sendMessage(userName + ": " + message);
                 messageField.setText("");
                 // 添加发送消息到服务器的逻辑，待写
             }
         });
+
+        // 默认选择第一个课程
+        switchCourse("高等数学");
+    }
+
+    private void addCourse(String courseName, JPanel coursePanel) {
+        JButton courseButton = new JButton(courseName);
+        courseButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, courseButton.getMinimumSize().height));
+        courseButton.addActionListener(e -> switchCourse(courseName));
+        coursePanel.add(courseButton);
+        courseChatAreas.put(courseName, new JTextArea());
+    }
+
+    private void switchCourse(String courseName) {
+        currentCourse = courseName;
+        chatArea.setText(courseChatAreas.get(courseName).getText());
+    }
+
+    private void sendMessage(String message) {
+        JTextArea currentChatArea = courseChatAreas.get(currentCourse);
+        currentChatArea.append(message + "\n");
+        chatArea.setText(currentChatArea.getText());
+        // 添加发送消息到服务器的逻辑，待写
     }
 }
