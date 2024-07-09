@@ -27,7 +27,6 @@ public class MainUI extends JFrame {
     private Socket socket;
     private DataInputStream dis;
     private DataOutputStream dos;
-    private Thread receiveThread;
 
     public MainUI(String userName) {
         // 主界面初始化
@@ -93,6 +92,9 @@ public class MainUI extends JFrame {
 
         // 默认选择第一个课程
         switchCourse("高等数学");
+
+        // 启动线程接收消息
+        new Thread(this::receiveMessages).start();
     }
 
     private void connectToServer() {
@@ -127,13 +129,6 @@ public class MainUI extends JFrame {
         chatArea.setText(courseChatAreas.get(courseName).getText());
         // 通知进入新课程
         sendSystemMessageToServer(userName + " 进入了 " + currentCourse + " 课堂", currentCourse);
-
-        // 重启接收消息的线程以确保只接收当前课程的消息
-        if (receiveThread != null && receiveThread.isAlive()) {
-            receiveThread.interrupt();
-        }
-        receiveThread = new Thread(this::receiveMessages);
-        receiveThread.start();
     }
 
     private void sendMessageToServer(String message, String course) {
@@ -173,7 +168,7 @@ public class MainUI extends JFrame {
 
     private void receiveMessages() {
         try {
-            while (!Thread.currentThread().isInterrupted()) {
+            while (true) {
                 // 接收发送的课程名和消息
                 String course = dis.readUTF();
                 String message = dis.readUTF();
@@ -189,9 +184,7 @@ public class MainUI extends JFrame {
                 }
             }
         } catch (IOException e) {
-            if (!Thread.currentThread().isInterrupted()) {
-                e.printStackTrace();
-            }
+            e.printStackTrace();
         }
     }
 }
