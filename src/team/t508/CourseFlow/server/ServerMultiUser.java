@@ -10,6 +10,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @author William-Zack
+ * @author GavenZ
  */
 public class ServerMultiUser {
     // 定义一个ArrayList，用于存储所有客户端的Channel对象
@@ -108,9 +109,20 @@ public class ServerMultiUser {
                 currentCourse = receive();
                 String msg = receive();
                 if (!msg.isEmpty()) {
-                    sendOthers(currentCourse, msg, false);
+                    if ("CHECK_IN_REQUEST".equals(msg)) {
+                        handleCheckInRequest();
+                    } else if (msg.startsWith("CHECK_IN_RESPONSE:")) {
+                        String studentName = msg.split(":")[1];
+                        sendOthers(currentCourse, Utility.getCurrentDateTime() + " 系统消息：" + studentName + " 完成签到", true);
+                    } else {
+                        sendOthers(currentCourse, msg, false);
+                    }
                 }
             }
+        }
+
+        private void handleCheckInRequest() {
+            sendOthers(currentCourse, "CHECK_IN_REQUEST", true);
         }
     }
 }
